@@ -1,18 +1,15 @@
 import streamlit as st
 import requests
-import json
 
-# Set up the Streamlit app
+# Streamlit App Title
 st.title("Professor and University Scraper")
 
-# Instructions
+# Instructions for the user
 st.markdown(
-    """Enter a URL of a university webpage, and this app will scrape the names of professors 
-    and their associated universities using the FireCrawl API. Please ensure your FireCrawl API 
-    key is stored securely in Streamlit secrets."""
+    """Enter a URL of a webpage, and this app will scrape the content using the FireCrawl API. Ensure your API key is securely stored in Streamlit Cloud Secrets."""
 )
 
-# Input field for the URL
+# Input for the URL
 url = st.text_input("Enter the URL to scrape:")
 
 # Button to trigger scraping
@@ -20,54 +17,51 @@ if st.button("Scrape"):
     if not url:
         st.error("Please enter a valid URL.")
     else:
-        # Retrieve the FireCrawl API key from Streamlit secrets
-        api_key = st.secrets["FIRECRAWL_API_KEY"]
-        
-        # Set up the FireCrawl API endpoint
+        # Retrieve FireCrawl API Key from Streamlit secrets
+        try:
+            api_key = st.secrets["FIRECRAWL_API_KEY"]
+        except KeyError:
+            st.error("API Key not found in secrets. Please add it to Streamlit Cloud.")
+            st.stop()
+
+        # FireCrawl API endpoint
         firecrawl_endpoint = "https://api.firecrawl.dev/v1/scrape"
 
-        # Configure the request payload
+        # Request headers
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         }
 
+        # Payload structure
         payload = {
             "url": url,
-            "selectors": {
-                "professors": "CSS_SELECTOR_FOR_PROFESSOR_NAMES",  # Replace with the CSS selector
-                "university": "CSS_SELECTOR_FOR_UNIVERSITY"        # Replace with the CSS selector
-            }
+            "formats": ["markdown", "html"]  # Adjust formats as needed
         }
 
         # Make the API request
         try:
             response = requests.post(firecrawl_endpoint, headers=headers, json=payload)
-            
-            if response.status_code == 200:
-                data = response.json()
-                professors = data.get("data", {}).get("professors", [])
-                universities = data.get("data", {}).get("university", [])
+            response.raise_for_status()  # Raise an error for bad status codes
 
-                if professors and universities:
-                    # Display results in a table
-                    results = zip(professors, universities)
-                    st.write("### Scraped Results")
-                    st.table([{"Professor": p, "University": u} for p, u in results])
-                else:
-                    st.warning("No data found. Please check the selectors or the webpage.")
+            # Parse response
+            data = response.json()
+            if data.get("success"):
+                st.success("Scraping successful!")
+                st.json(data)  # Display scraped data
             else:
-                st.error(f"Failed to scrape. Error: {response.text}")
+                st.error(f"Scraping failed: {data.get('error', 'Unknown error')}\nDetails: {data.get('details')}" )
+        except requests.exceptions.HTTPError as http_err:
+            st.error(f"HTTP error occurred: {http_err}")
+        except Exception as err:
+            st.error(f"An unexpected error occurred: {err}")
 
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
-
+# Notes for the user
 st.markdown(
     """---
-    #### Notes:
-    - Ensure you replace `CSS_SELECTOR_FOR_PROFESSOR_NAMES` and `CSS_SELECTOR_FOR_UNIVERSITY` 
-      with appropriate CSS selectors for the webpage structure.
-    - API key is securely stored in Streamlit secrets.
-    - Visit [FireCrawl documentation](https://docs.firecrawl.dev/introduction) for more details.
+    **Notes:**
+    - Ensure the API key is securely stored in Streamlit Cloud Secrets as `FIRECRAWL_API_KEY`.
+    - The FireCrawl API expects a valid URL and formats as part of the payload.
+    - Visit [FireCrawl Documentation](https://docs.firecrawl.dev/features/scrape) for more details.
     """
 )
