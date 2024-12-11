@@ -12,20 +12,22 @@ st.markdown(
 )
 
 # Input fields for API parameters
-api_url = st.text_input("API Endpoint URL", "https://api.agentql.com/scrape")
-url_to_scrape = st.text_input("URL to Scrape", "https://example.com")
-fields = st.text_area(
-    "Fields to Scrape (JSON format)", 
+api_key = st.text_input("API Key", placeholder="Enter your AgentQL API Key", type="password")
+url_to_scrape = st.text_input("URL to Scrape", "https://scrapeme.live/?s=fish&post_type=product")
+query = st.text_area(
+    "GraphQL Query (JSON format)", 
     """{
-  "title": "title",
-  "links": "a@href"
+  "query": "{ products[] { product_name product_price(integer) } }"
 }"""
 )
 
-headers_input = st.text_area(
-    "Headers (JSON format, optional)",
+params = st.text_area(
+    "Params (JSON format, optional)",
     """{
-  "Authorization": "Bearer YOUR_API_KEY"
+  "wait_for": 0,
+  "is_scroll_to_bottom_enabled": false,
+  "mode": "fast",
+  "is_screenshot_enabled": false
 }"""
 )
 
@@ -33,17 +35,22 @@ headers_input = st.text_area(
 if st.button("Scrape Data"):
     try:
         # Parse inputs
-        headers = json.loads(headers_input) if headers_input.strip() else {}
-        fields_json = json.loads(fields)
+        headers = {
+            "X-API-Key": api_key,
+            "Content-Type": "application/json"
+        }
+        query_json = json.loads(query)
+        params_json = json.loads(params) if params.strip() else {}
 
         # Prepare the payload
         payload = {
+            "query": query_json["query"],
             "url": url_to_scrape,
-            "fields": fields_json
+            "params": params_json
         }
 
         # Make the API request
-        response = requests.post(api_url, headers=headers, json=payload)
+        response = requests.post("https://api.agentql.com/v1/query-data", headers=headers, json=payload)
 
         # Display results
         if response.status_code == 200:
