@@ -1,6 +1,5 @@
 import streamlit as st
-import requests
-from bs4 import BeautifulSoup
+from firecrawl import FirecrawlApp
 
 # Streamlit App Title
 st.title("Professor and University Scraper")
@@ -28,58 +27,31 @@ if st.button("Scrape"):
             st.error("API Key not found in secrets. Please add it to Streamlit Cloud.")
             st.stop()
 
-        # FireCrawl API endpoint
-        firecrawl_endpoint = "https://api.firecrawl.dev/v1/scrape"
-
-        # Request headers
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-
-        # Payload structure
-        payload = {
-            "url": url,
-            "formats": ["html"]
-        }
-
-        # Make the API request
+        # Initialize FirecrawlApp
         try:
-            response = requests.post(firecrawl_endpoint, headers=headers, json=payload)
-            response.raise_for_status()  # Raise an error for bad status codes
+            app = FirecrawlApp(api_key=api_key)
 
-            # Parse response
-            data = response.json()
-            if data.get("success"):
+            # Scrape the website
+            scrape_result = app.scrape_url(url, params={"formats": ["markdown", "html"]})
+
+            if scrape_result.get("success"):
                 st.success("Scraping successful!")
 
-                # Extract HTML content
-                html_content = data.get("data", {}).get("html", "")
-                if html_content:
-                    # Use BeautifulSoup to parse and extract names and universities
-                    soup = BeautifulSoup(html_content, "html.parser")
-                    results = []
+                # Extract and display content
+                markdown_content = scrape_result.get("data", {}).get("markdown", "")
+                html_content = scrape_result.get("data", {}).get("html", "")
 
-                    # Find specific elements containing names and universities (update selectors as needed)
-                    for item in soup.find_all("li"):
-                        text = item.get_text(strip=True)
-                        if " – " in text:  # Assuming names and universities are separated by "–"
-                            name, university = map(str.strip, text.split("–", 1))
-                            results.append(f"{name} is affiliated with {university}.")
+                if markdown_content:
+                    st.write("### Scraped Content (Markdown):")
+                    st.markdown(markdown_content)
+                elif html_content:
+                    st.write("### Scraped Content (HTML):")
+                    st.code(html_content, language="html")
 
-                    # Display the extracted information
-                    if results:
-                        st.write("### Scraped Professors and Universities")
-                        for result in results:
-                            st.write(result)
-                    else:
-                        st.warning("No names or universities found on the page.")
                 else:
-                    st.warning("No content found in the response.")
+                    st.warning("No relevant content was found on the page.")
             else:
-                st.error(f"Scraping failed: {data.get('error', 'Unknown error')}\nDetails: {data.get('details')}")
-        except requests.exceptions.HTTPError as http_err:
-            st.error(f"HTTP error occurred: {http_err}")
+                st.error(f"Scraping failed: {scrape_result.get('error', 'Unknown error')}")
         except Exception as err:
             st.error(f"An unexpected error occurred: {err}")
 
