@@ -81,7 +81,7 @@ def orchestrate_workflow(client, url):
     # Step 1: Scrape the website
     scrape_result = client.run(
         agent=scraper_agent,
-        messages=[{"role": "user", "content": f"Scrape the following website: {url}"}]
+        messages=[{"role": "user", "content": f"Scrape the following website: {url} Scrape participant names and their affiliated universities from the webpage."}]
     )
     scraped_content = scrape_result.messages[-1]["content"]
 
@@ -99,7 +99,7 @@ def orchestrate_workflow(client, url):
     # Step 3: Write the summary based on the analysis
     writer_result = client.run(
         agent=writer_agent,
-        messages=[{"role": "user", "content": f"Write a summary based on this analysis: {analysis_summary}"}],
+        messages=[{"role": "user", "content": f"Write a summary based on this analysis: {analysis_summary} List participant names and their affiliated universities from the webpage. "}],
         context_variables={"analysis": analysis_summary}  # Pass the analysis to the writer agent
     )
 
