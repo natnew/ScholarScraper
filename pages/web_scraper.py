@@ -45,7 +45,7 @@ def scrape_website(url):
 # Scraper Agent
 scraper_agent = Agent(
     name="Scraper Agent",
-    instructions="You are an agent that scrapes content from websites.",
+    instructions="You are an agent that scrapes content from websites. Scrape participant names and their affiliated universities from the webpage.",
     functions=[scrape_website]  # The agent can use the scrape_website function
 )
 
@@ -58,7 +58,7 @@ def analyze_content(content):
 # Research Agent
 research_agent = Agent(
     name="Research Agent",
-    instructions="You are an agent that analyzes content and extracts key insights.",
+    instructions="You are an agent that analyzes content and extracts key insights. Scrape participant names and their affiliated universities from the webpage.",
     functions=[analyze_content]  # The agent can use the analyze_content function
 )
 
@@ -72,7 +72,7 @@ def write_summary(context_variables):
 # Writer Agent
 writer_agent = Agent(
     name="Writer Agent",
-    instructions="You are an agent that writes summaries of research.",
+    instructions="You are an agent that writes summaries of research. Scrape participant names and their affiliated universities from the webpage.",
     functions=[write_summary]  # The agent can use the write_summary function
 )
 
