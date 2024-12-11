@@ -1,4 +1,9 @@
 import streamlit as st
+import warnings
+
+# Suppress the specific warning
+warnings.filterwarnings("ignore", message='Field name "schema" in "FirecrawlApp.ExtractParams" shadows an attribute in parent "BaseModel"')
+
 from firecrawl import FirecrawlApp
 
 # Streamlit App Title
