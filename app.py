@@ -7,7 +7,7 @@ import requests
 st.set_page_config(
     page_title="Professor and University Scraper",  # Title of the tab in the browser
     page_icon="📊",                 # An optional emoji or icon
-    layout="wide"                   # Optional layout setting
+    layout="centered"                   # Optional layout setting
 )
 
 # Streamlit App Title
