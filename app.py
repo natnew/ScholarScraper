@@ -1,6 +1,15 @@
 import streamlit as st
 import requests
 
+
+
+# Set the page configuration
+st.set_page_config(
+    page_title="Professor and University Scraper",  # Title of the tab in the browser
+    page_icon="📊",                 # An optional emoji or icon
+    layout="wide"                   # Optional layout setting
+)
+
 # Streamlit App Title
 st.title("Professor and University Scraper")
 
